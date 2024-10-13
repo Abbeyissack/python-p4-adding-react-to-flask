@@ -17,7 +17,8 @@ db.init_app(app)
 @app.route('/messages', methods=['GET', 'POST'])
 def messages():
     if request.method == 'GET':
-        messages = Message.query.order_by('created_at').all()
+        # Correct the order_by to use the column Message.created_at
+        messages = Message.query.order_by(Message.created_at).all()
 
         response = make_response(
             jsonify([message.to_dict() for message in messages]),
@@ -44,6 +45,12 @@ def messages():
 @app.route('/messages/<int:id>', methods=['PATCH', 'DELETE'])
 def messages_by_id(id):
     message = Message.query.filter_by(id=id).first()
+
+    if not message:
+        return make_response(
+            jsonify({"error": "Message not found"}),
+            404
+        )
 
     if request.method == 'PATCH':
         data = request.get_json()
